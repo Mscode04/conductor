@@ -350,10 +350,15 @@ class TaskRunner {
         }
     }
 
-    //FIXME
     private Optional<String> upload(TaskResult result, String taskType) {
-        // do nothing
-        return Optional.empty();
+        try {
+            return taskClient.evaluateAndUploadLargePayload(result.getOutputData(), taskType);
+        } catch (IllegalArgumentException iae) {
+            result.setReasonForIncompletion(iae.getMessage());
+            result.setOutputData(null);
+            result.setStatus(TaskResult.Status.FAILED_WITH_TERMINAL_ERROR);
+            return Optional.empty();
+        }
     }
 
     private <T, R> R retryOperation(Function<T, R> operation, int count, T input, String opName) {
